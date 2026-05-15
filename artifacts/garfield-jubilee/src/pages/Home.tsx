@@ -801,8 +801,13 @@ export default function Home() {
               <div className="mt-12 pt-8 border-t border-white/6">
                 <p className="text-[10px] font-black tracking-[0.4em] uppercase text-primary mb-5">Connect</p>
                 <div className="flex gap-6">
-                  {["LinkedIn", "Twitter", "Facebook"].map((s) => (
-                    <a key={s} href="#" className="text-muted-foreground hover:text-foreground text-sm font-medium transition-colors" data-testid={`social-${s.toLowerCase()}`}>{s}</a>
+                  {[
+                    { label: "Facebook", url: "https://www.facebook.com/Garfield-Jubilee-Association-186643161358490/" },
+                    { label: "Twitter", url: "https://twitter.com/TheGJAmovement" },
+                    { label: "LinkedIn", url: "https://www.linkedin.com/company/1862224" },
+                  ].map(({ label, url }) => (
+                    <a key={label} href={url} target="_blank" rel="noopener noreferrer"
+                      className="text-muted-foreground hover:text-foreground text-sm font-medium transition-colors" data-testid={`social-${label.toLowerCase()}`}>{label}</a>
                   ))}
                 </div>
               </div>
