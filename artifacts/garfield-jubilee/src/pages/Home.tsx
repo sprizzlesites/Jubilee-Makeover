@@ -76,6 +76,8 @@ export default function Home() {
 
   return (
     <div className="min-h-screen bg-background text-foreground overflow-x-hidden">
+      {/* Grain overlay */}
+      <div className="grain-overlay" aria-hidden="true" />
 
       {/* Nav */}
       <nav className={`fixed top-0 w-full z-50 transition-all duration-500 ${isScrolled ? "bg-background/95 backdrop-blur-xl border-b border-border/60" : "bg-transparent"}`}>
@@ -447,10 +449,10 @@ export default function Home() {
 
           <div className="grid md:grid-cols-3 gap-0 divide-y md:divide-y-0 md:divide-x divide-primary-foreground/20">
             {[
-              { counter: nav1983, suffix: "", label: "Year Founded", sub: "Over four decades of service" },
-              { counter: navFamilies, suffix: "+", label: "Families Served", sub: "Through housing programs" },
-              { counter: navYouth, suffix: " yrs", label: "Youth Ages Served", sub: "The heart of YouthBuild" },
-            ].map(({ counter, suffix, label, sub }, i) => (
+              { counter: nav1983, suffix: "", label: "Year Founded", sub: "Over four decades of service", raw: true },
+              { counter: navFamilies, suffix: "+", label: "Families Served", sub: "Through housing programs", raw: false },
+              { counter: navYouth, suffix: " yrs", label: "Youth Ages Served", sub: "The heart of YouthBuild", raw: false },
+            ].map(({ counter, suffix, label, sub, raw }, i) => (
               <motion.div
                 key={i}
                 initial={{ opacity: 0, y: 30 }}
@@ -461,7 +463,7 @@ export default function Home() {
                 data-testid={`stat-${i}`}
               >
                 <div className="font-display text-[clamp(4rem,8vw,8rem)] leading-none text-primary-foreground mb-3">
-                  <span ref={counter.ref}>{counter.count.toLocaleString()}</span>
+                  <span ref={counter.ref}>{raw ? counter.count.toString() : counter.count.toLocaleString()}</span>
                   {suffix}
                 </div>
                 <p className="font-semibold text-primary-foreground text-lg mb-1">{label}</p>
