@@ -1,0 +1,20 @@
+uploads = []
+outputs = []
+
+[[generated]]
+id = "GJWIBnVfxeNGA8ARl7ud4"
+uri = "file://artifacts/garfield-jubilee/src/assets/hero-community.png"
+type = "image"
+title = "Pittsburgh Garfield neighborhood morning"
+
+[[generated]]
+id = "9fLcPfxYtKW9LBarK2TW2"
+uri = "file://artifacts/garfield-jubilee/src/assets/youthbuild-construction.png"
+type = "image"
+title = "Youth learning construction skills"
+
+[[generated]]
+id = "NFUKdEjwRPRTwIOB9bbk0"
+uri = "file://artifacts/garfield-jubilee/src/assets/housing-counseling.png"
+type = "image"
+title = "Community counseling session"
