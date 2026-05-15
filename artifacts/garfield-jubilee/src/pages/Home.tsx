@@ -1,5 +1,5 @@
 import { useState, useEffect, useRef, useCallback } from "react";
-import { motion, useScroll, useTransform, useSpring, AnimatePresence } from "framer-motion";
+import { motion, useScroll, useTransform, useSpring, AnimatePresence, useAnimation } from "framer-motion";
 import { ArrowRight, Phone, MapPin, Menu, X, ChevronDown, CheckCircle, Loader2 } from "lucide-react";
 
 import heroImg from "../assets/hero-community.png";
@@ -154,10 +154,39 @@ function SplitText({ text, className, delay = 0, charClass }: { text: string; cl
   );
 }
 
+/* ─── Scramble text ─── */
+function ScrambleText({ text, className }: { text: string; className?: string }) {
+  const [out, setOut] = useState(text);
+  const ref = useRef<HTMLSpanElement>(null);
+  useEffect(() => {
+    const el = ref.current;
+    if (!el) return;
+    const obs = new IntersectionObserver(([entry]) => {
+      if (!entry.isIntersecting) return;
+      obs.disconnect();
+      const pool = "ABCDEFGHIJKLMNOPQRSTUVWXYZ·◆∆";
+      let iter = 0;
+      const t = setInterval(() => {
+        setOut(text.split("").map((c, i) => {
+          if (c === " " || c === "\n") return c;
+          if (i < iter) return c;
+          return pool[Math.floor(Math.random() * pool.length)];
+        }).join(""));
+        iter += 0.38;
+        if (iter > text.length) clearInterval(t);
+      }, 45);
+    }, { threshold: 0.3 });
+    obs.observe(el);
+    return () => obs.disconnect();
+  }, [text]);
+  return <span ref={ref} className={className}>{out}</span>;
+}
+
 /* ─── 3D Tilt card ─── */
 function TiltCard({ children, className }: { children: React.ReactNode; className?: string }) {
   const ref = useRef<HTMLDivElement>(null);
   const [t, setT] = useState({ x: 0, y: 0, gx: 50, gy: 50 });
+  const shine = useAnimation();
   const onMove = useCallback((e: React.MouseEvent) => {
     if (!ref.current) return;
     const r = ref.current.getBoundingClientRect();
@@ -165,12 +194,20 @@ function TiltCard({ children, className }: { children: React.ReactNode; classNam
     const ny = (e.clientY - r.top) / r.height;
     setT({ x: (ny - 0.5) * 10, y: (nx - 0.5) * -10, gx: nx * 100, gy: ny * 100 });
   }, []);
+  const handleEnter = useCallback(async () => {
+    shine.set({ x: "-110%", opacity: 0 });
+    await shine.start({ x: "210%", opacity: [0, 1, 0], transition: { duration: 0.65, ease: "easeOut" } });
+  }, [shine]);
   return (
-    <div ref={ref} onMouseMove={onMove} onMouseLeave={() => setT({ x: 0, y: 0, gx: 50, gy: 50 })}
+    <div ref={ref} onMouseMove={onMove} onMouseEnter={handleEnter}
+      onMouseLeave={() => setT({ x: 0, y: 0, gx: 50, gy: 50 })}
       style={{ transform: `perspective(1000px) rotateX(${t.x}deg) rotateY(${t.y}deg)`, transition: "transform 0.15s ease-out" }}
-      className={`relative ${className ?? ""}`}>
-      <div className="absolute inset-0 opacity-0 hover:opacity-100 transition-opacity duration-300 pointer-events-none rounded-[inherit]"
+      className={`relative overflow-hidden ${className ?? ""}`}>
+      <div className="absolute inset-0 opacity-0 hover:opacity-100 transition-opacity duration-300 pointer-events-none"
         style={{ background: `radial-gradient(circle at ${t.gx}% ${t.gy}%, hsl(33 95% 58% / 0.09), transparent 60%)` }} />
+      <motion.div animate={shine} initial={{ x: "-110%", opacity: 0 }}
+        className="absolute inset-y-0 left-0 w-[70%] pointer-events-none z-20"
+        style={{ background: "linear-gradient(90deg, transparent, rgba(255,255,255,0.055), transparent)" }} />
       {children}
     </div>
   );
@@ -179,6 +216,7 @@ function TiltCard({ children, className }: { children: React.ReactNode; classNam
 /* ─── Counter ─── */
 function useCounter(target: number, d = 2000) {
   const [n, setN] = useState(0);
+  const [done, setDone] = useState(false);
   const started = useRef(false);
   const start = useCallback(() => {
     if (started.current) return;
@@ -187,11 +225,11 @@ function useCounter(target: number, d = 2000) {
     const step = target / (d / 16);
     const t = setInterval(() => {
       v += step;
-      if (v >= target) { setN(target); clearInterval(t); }
+      if (v >= target) { setN(target); setDone(true); clearInterval(t); }
       else setN(Math.floor(v));
     }, 16);
   }, [target, d]);
-  return { n, start };
+  return { n, start, done };
 }
 
 /* ─── Marquee ─── */
@@ -477,10 +515,10 @@ export default function Home() {
         <div className="absolute top-1/3 right-0 w-[400px] h-[400px] rounded-full bg-primary/8 blur-[100px] pointer-events-none z-[1]" />
 
         <motion.div className="relative z-10 container mx-auto px-6 md:px-12 pb-24 md:pb-32" style={{ opacity: heroOpacity }}>
-          <div className="overflow-hidden mb-1">
+          <div className="mb-1">
             <SplitText text="TRANSFORMING" className="font-display text-[clamp(3.5rem,11vw,10.5rem)] leading-[0.88] text-foreground block" delay={0.1} />
           </div>
-          <div className="overflow-hidden mb-10">
+          <div className="mb-10">
             <SplitText text="LIVES." className="font-display text-[clamp(3.5rem,11vw,10.5rem)] leading-[0.88] text-primary block" delay={0.4} charClass="text-glow" />
           </div>
           <motion.p initial={{ opacity: 0, y: 20 }} animate={{ opacity: 1, y: 0 }} transition={{ delay: 1.0, duration: 0.8 }}
@@ -498,7 +536,11 @@ export default function Home() {
               Our Story <ChevronDown className="h-4 w-4" />
             </button>
           </motion.div>
-          <motion.p initial={{ opacity: 0 }} animate={{ opacity: 1 }} transition={{ delay: 1.7 }} className="mt-6 text-[10px] tracking-[0.38em] uppercase text-muted-foreground/35">Pittsburgh · Since 1983</motion.p>
+          <motion.p
+            initial={{ opacity: 0, y: 0 }}
+            animate={{ opacity: 1, y: [0, -5, 0] }}
+            transition={{ opacity: { delay: 1.7, duration: 0.6 }, y: { delay: 2.6, duration: 4, repeat: Infinity, ease: "easeInOut" } }}
+            className="mt-6 text-[10px] tracking-[0.38em] uppercase text-muted-foreground/35">Pittsburgh · Since 1983</motion.p>
         </motion.div>
 
         <motion.div initial={{ opacity: 0 }} animate={{ opacity: 1 }} transition={{ delay: 2.2 }}
@@ -544,10 +586,11 @@ export default function Home() {
                 <p className="font-serif text-xl text-foreground leading-snug italic">"A place where everyone belongs."</p>
                 <div className="mt-3 h-px w-8 bg-primary" />
               </motion.div>
-              <div className="absolute -top-4 -right-4 bg-primary text-primary-foreground w-20 h-20 flex flex-col items-center justify-center">
+              <motion.div animate={{ y: [0, -8, 0] }} transition={{ duration: 4.5, repeat: Infinity, ease: "easeInOut" }}
+                className="absolute -top-4 -right-4 bg-primary text-primary-foreground w-20 h-20 flex flex-col items-center justify-center">
                 <span className="font-display text-3xl leading-none">40+</span>
                 <span className="text-[9px] font-bold tracking-widest uppercase">Years</span>
-              </div>
+              </motion.div>
             </motion.div>
           </div>
         </div>
@@ -559,7 +602,7 @@ export default function Home() {
           <motion.div initial={{ opacity: 0, y: 30 }} whileInView={{ opacity: 1, y: 0 }} viewport={{ once: true }} transition={{ duration: 0.7 }} className="flex items-end justify-between mb-16 flex-wrap gap-4">
             <div>
               <p className="text-primary text-[10px] font-black tracking-[0.45em] uppercase mb-4">What We Do</p>
-              <h2 className="font-display text-[clamp(3rem,7vw,7rem)] leading-[0.9] text-foreground">CORE PROGRAMS</h2>
+              <h2 className="font-display text-[clamp(3rem,7vw,7rem)] leading-[0.9] text-foreground"><ScrambleText text="CORE PROGRAMS" /></h2>
             </div>
             <p className="text-muted-foreground max-w-xs text-sm leading-relaxed">Three pillars driving real change across the Garfield neighborhood and beyond.</p>
           </motion.div>
@@ -593,7 +636,8 @@ export default function Home() {
         <div className="absolute top-1/2 left-1/2 -translate-x-1/2 -translate-y-1/2 w-[700px] h-[350px] bg-primary/4 blur-[100px] rounded-full pointer-events-none" />
         <div className="container mx-auto px-6 md:px-12 relative z-10 text-center">
           <motion.div initial={{ opacity: 0, y: 40 }} whileInView={{ opacity: 1, y: 0 }} viewport={{ once: true }} transition={{ duration: 1, ease: [0.16, 1, 0.3, 1] }}>
-            <span className="font-serif text-[7rem] leading-none text-primary/18 block -mb-8 select-none">"</span>
+            <motion.span animate={{ y: [0, -14, 0] }} transition={{ duration: 5.5, repeat: Infinity, ease: "easeInOut" }}
+              className="font-serif text-[7rem] leading-none text-primary/18 block -mb-8 select-none">"</motion.span>
             <p className="font-serif text-3xl md:text-5xl text-foreground italic leading-[1.25] max-w-4xl mx-auto">
               To strengthen communities through the manifestation of the <span className="text-primary not-italic font-bold">love of God.</span>
             </p>
@@ -662,7 +706,7 @@ export default function Home() {
         <div className="container mx-auto px-6 md:px-12 relative z-10">
           <motion.div initial={{ opacity: 0, y: 20 }} whileInView={{ opacity: 1, y: 0 }} viewport={{ once: true }} transition={{ duration: 0.6 }} className="text-center mb-20">
             <p className="text-primary-foreground/45 text-[10px] font-black tracking-[0.45em] uppercase mb-3">By the Numbers</p>
-            <h2 className="font-display text-[clamp(3rem,6vw,6rem)] text-primary-foreground leading-none">OUR IMPACT</h2>
+            <h2 className="font-display text-[clamp(3rem,6vw,6rem)] text-primary-foreground leading-none"><ScrambleText text="OUR IMPACT" /></h2>
           </motion.div>
           <div className="grid md:grid-cols-3 divide-y md:divide-y-0 md:divide-x divide-primary-foreground/12">
             {[
@@ -674,9 +718,12 @@ export default function Home() {
                 onViewportEnter={() => c.start()}
                 viewport={{ once: true }}
                 transition={{ duration: 0.6, delay: i * 0.15 }} className="py-12 md:py-0 md:px-16 text-center" data-testid={`stat-${i}`}>
-                <div className="font-display text-[clamp(5rem,10vw,10rem)] leading-none text-primary-foreground mb-3">
+                <motion.div
+                  className="font-display text-[clamp(5rem,10vw,10rem)] leading-none text-primary-foreground mb-3"
+                  animate={c.done ? { scale: [1, 1.07, 1] } : {}}
+                  transition={{ duration: 0.45, ease: [0.34, 1.56, 0.64, 1] }}>
                   <span>{raw ? c.n.toString() : c.n.toLocaleString()}</span>{suffix}
-                </div>
+                </motion.div>
                 <p className="font-semibold text-primary-foreground text-lg mb-1">{label}</p>
                 <p className="text-primary-foreground/45 text-sm">{sub}</p>
               </motion.div>
