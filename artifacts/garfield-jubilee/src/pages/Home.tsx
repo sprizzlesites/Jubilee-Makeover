@@ -571,7 +571,7 @@ export default function Home() {
               </div>
               <div className="mt-10 flex items-center gap-3 text-foreground/45 text-sm font-medium tracking-wide">
                 <MapPin className="text-primary h-4 w-4 shrink-0" />
-                Serving Garfield, East End, and the Pittsburgh region
+                5325 Penn Ave, Pittsburgh, PA 15224
               </div>
             </motion.div>
             <motion.div initial={{ opacity: 0 }} whileInView={{ opacity: 1 }} viewport={{ once: true }} transition={{ duration: 0.3 }} className="relative">
@@ -784,7 +784,8 @@ export default function Home() {
                   </div>
                   <div>
                     <p className="font-semibold text-foreground text-sm mb-1">Location</p>
-                    <p className="text-muted-foreground text-sm">Garfield Neighborhood<br />Pittsburgh, PA</p>
+                    <a href="https://maps.google.com/?q=5325+Penn+Ave+Pittsburgh+PA+15224" target="_blank" rel="noopener noreferrer"
+                      className="text-muted-foreground text-sm hover:text-primary transition-colors">5325 Penn Ave<br />Pittsburgh, PA 15224</a>
                   </div>
                 </div>
                 <div className="flex gap-5">
