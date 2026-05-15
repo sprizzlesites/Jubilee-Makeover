@@ -1,6 +1,6 @@
 import { useState, useEffect, useRef, useCallback } from "react";
 import { motion, useScroll, useTransform, useSpring, AnimatePresence, useAnimation } from "framer-motion";
-import { ArrowRight, Phone, MapPin, Menu, X, ChevronDown, CheckCircle, Loader2 } from "lucide-react";
+import { ArrowRight, Phone, MapPin, Mail, Menu, X, ChevronDown, CheckCircle, Loader2 } from "lucide-react";
 
 import heroImg from "../assets/hero-community.png";
 import constructionImg from "../assets/youthbuild-construction.png";
@@ -795,6 +795,15 @@ export default function Home() {
                   <div>
                     <p className="font-semibold text-foreground text-sm mb-1">Phone</p>
                     <a href="tel:4126655200" className="text-muted-foreground text-sm hover:text-primary transition-colors">(412) 665-5200</a>
+                  </div>
+                </div>
+                <div className="flex gap-5">
+                  <div className="w-10 h-10 bg-primary/10 border border-primary/15 flex items-center justify-center shrink-0">
+                    <Mail className="h-4 w-4 text-primary" />
+                  </div>
+                  <div>
+                    <p className="font-semibold text-foreground text-sm mb-1">Email</p>
+                    <a href="mailto:info@garfieldjubilee.org" className="text-muted-foreground text-sm hover:text-primary transition-colors">info@garfieldjubilee.org</a>
                   </div>
                 </div>
               </div>
