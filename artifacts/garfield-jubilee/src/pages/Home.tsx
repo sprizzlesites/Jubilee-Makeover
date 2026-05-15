@@ -1,5 +1,5 @@
 import { useState, useEffect, useRef, useCallback } from "react";
-import { motion, useScroll, useTransform, useInView, useSpring, AnimatePresence } from "framer-motion";
+import { motion, useScroll, useTransform, useSpring, AnimatePresence } from "framer-motion";
 import { ArrowRight, Phone, MapPin, Menu, X, ChevronDown, CheckCircle, Loader2 } from "lucide-react";
 
 import heroImg from "../assets/hero-community.png";
@@ -137,14 +137,16 @@ function MagButton({ children, className, onClick, type = "button" }: { children
 }
 
 /* ─── Split text ─── */
-function SplitText({ text, className, delay = 0 }: { text: string; className?: string; delay?: number }) {
+function SplitText({ text, className, delay = 0, charClass }: { text: string; className?: string; delay?: number; charClass?: string }) {
   return (
     <span className={className}>
       {text.split("").map((c, i) => (
-        <motion.span key={i} initial={{ opacity: 0, y: 70, filter: "blur(12px)" }}
-          animate={{ opacity: 1, y: 0, filter: "blur(0px)" }}
+        <motion.span key={i}
+          initial={{ opacity: 0, y: 70 }}
+          animate={{ opacity: 1, y: 0 }}
           transition={{ duration: 0.55, delay: delay + i * 0.027, ease: [0.16, 1, 0.3, 1] }}
-          className="inline-block" style={{ whiteSpace: c === " " ? "pre" : undefined }}>
+          className={`inline-block${charClass ? ` ${charClass}` : ""}`}
+          style={{ whiteSpace: c === " " ? "pre" : undefined }}>
           {c === " " ? "\u00A0" : c}
         </motion.span>
       ))}
@@ -177,15 +179,19 @@ function TiltCard({ children, className }: { children: React.ReactNode; classNam
 /* ─── Counter ─── */
 function useCounter(target: number, d = 2000) {
   const [n, setN] = useState(0);
-  const ref = useRef<HTMLSpanElement>(null);
-  const inView = useInView(ref, { once: true });
-  useEffect(() => {
-    if (!inView) return;
-    let v = 0; const step = target / (d / 16);
-    const t = setInterval(() => { v += step; if (v >= target) { setN(target); clearInterval(t); } else setN(Math.floor(v)); }, 16);
-    return () => clearInterval(t);
-  }, [inView, target, d]);
-  return { n, ref };
+  const started = useRef(false);
+  const start = useCallback(() => {
+    if (started.current) return;
+    started.current = true;
+    let v = 0;
+    const step = target / (d / 16);
+    const t = setInterval(() => {
+      v += step;
+      if (v >= target) { setN(target); clearInterval(t); }
+      else setN(Math.floor(v));
+    }, 16);
+  }, [target, d]);
+  return { n, start };
 }
 
 /* ─── Marquee ─── */
@@ -467,14 +473,15 @@ export default function Home() {
           <div className="absolute inset-0 bg-gradient-to-r from-background/85 via-background/25 to-transparent" />
         </motion.div>
         <Particles />
-        <div className="absolute bottom-0 left-0 w-[600px] h-[500px] rounded-full bg-primary/10 blur-[130px] pointer-events-none z-[1]" />
+        <div className="absolute bottom-0 left-0 w-[600px] h-[500px] rounded-full bg-primary/20 blur-[110px] pointer-events-none z-[1]" />
+        <div className="absolute top-1/3 right-0 w-[400px] h-[400px] rounded-full bg-primary/8 blur-[100px] pointer-events-none z-[1]" />
 
         <motion.div className="relative z-10 container mx-auto px-6 md:px-12 pb-24 md:pb-32" style={{ opacity: heroOpacity }}>
           <div className="overflow-hidden mb-1">
             <SplitText text="TRANSFORMING" className="font-display text-[clamp(3.5rem,11vw,10.5rem)] leading-[0.88] text-foreground block" delay={0.1} />
           </div>
           <div className="overflow-hidden mb-10">
-            <SplitText text="LIVES." className="font-display text-[clamp(3.5rem,11vw,10.5rem)] leading-[0.88] text-primary block text-glow" delay={0.4} />
+            <SplitText text="LIVES." className="font-display text-[clamp(3.5rem,11vw,10.5rem)] leading-[0.88] text-primary block" delay={0.4} charClass="text-glow" />
           </div>
           <motion.p initial={{ opacity: 0, y: 20 }} animate={{ opacity: 1, y: 0 }} transition={{ delay: 1.0, duration: 0.8 }}
             className="text-muted-foreground text-lg max-w-md leading-relaxed font-light mb-10">
@@ -663,10 +670,12 @@ export default function Home() {
               { c: cFam, suffix: "+", label: "Families Served", sub: "Through housing programs", raw: false },
               { c: cYouth, suffix: " yrs", label: "Youth Ages Served", sub: "The heart of YouthBuild", raw: false },
             ].map(({ c, suffix, label, sub, raw }, i) => (
-              <motion.div key={i} initial={{ opacity: 0, y: 30 }} whileInView={{ opacity: 1, y: 0 }} viewport={{ once: true }}
+              <motion.div key={i} initial={{ opacity: 0, y: 30 }} whileInView={{ opacity: 1, y: 0 }}
+                onViewportEnter={() => c.start()}
+                viewport={{ once: true }}
                 transition={{ duration: 0.6, delay: i * 0.15 }} className="py-12 md:py-0 md:px-16 text-center" data-testid={`stat-${i}`}>
                 <div className="font-display text-[clamp(5rem,10vw,10rem)] leading-none text-primary-foreground mb-3">
-                  <span ref={c.ref}>{raw ? c.n.toString() : c.n.toLocaleString()}</span>{suffix}
+                  <span>{raw ? c.n.toString() : c.n.toLocaleString()}</span>{suffix}
                 </div>
                 <p className="font-semibold text-primary-foreground text-lg mb-1">{label}</p>
                 <p className="text-primary-foreground/45 text-sm">{sub}</p>
