@@ -4,7 +4,7 @@ import { ArrowRight, Phone, MapPin, Menu, X, ChevronDown, CheckCircle, Loader2 }
 
 import heroImg from "../assets/hero-community.png";
 import constructionImg from "../assets/youthbuild-construction.png";
-import counselingImg from "../assets/housing-counseling.png";
+import counselingImg from "../assets/gja-slide-3.jpg";
 
 /* ─── Static data (computed once, never in render) ─── */
 const PARTICLES = [
