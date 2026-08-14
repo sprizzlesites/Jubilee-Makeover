@@ -1,0 +1,4 @@
+User-agent: *
+Allow: /
+
+Sitemap: https://sprizzlesites.github.io/Jubilee-Makeover/sitemap.xml
